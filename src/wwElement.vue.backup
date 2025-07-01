@@ -2,17 +2,17 @@
   <div
     :class="cn(
       'w-full',
-      customClass
+      content.customClass
     )"
-    :style="customStyle"
+    :style="content.customStyle"
   >
     <!-- Chart header -->
-    <div v-if="title || description" class="mb-4">
-      <h3 v-if="title" class="text-lg font-medium leading-none tracking-tight">
-        {{ title }}
+    <div v-if="content.title || content.description" class="mb-4">
+      <h3 v-if="content.title" class="text-lg font-medium leading-none tracking-tight">
+        {{ content.title }}
       </h3>
-      <p v-if="description" class="text-sm text-muted-foreground mt-1">
-        {{ description }}
+      <p v-if="content.description" class="text-sm text-muted-foreground mt-1">
+        {{ content.description }}
       </p>
     </div>
 
@@ -21,22 +21,22 @@
       ref="chartContainer"
       :class="cn(
         'relative border rounded-lg p-4 bg-background',
-        height === 'sm' ? 'h-48' : '',
-        height === 'md' ? 'h-64' : '',
-        height === 'lg' ? 'h-80' : '',
-        height === 'xl' ? 'h-96' : '',
-        !height ? 'h-64' : ''
+        content.height === 'sm' ? 'h-48' : '',
+        content.height === 'md' ? 'h-64' : '',
+        content.height === 'lg' ? 'h-80' : '',
+        content.height === 'xl' ? 'h-96' : '',
+        !content.height ? 'h-64' : ''
       )"
     >
       <!-- Line Chart -->
       <svg
-        v-if="type === 'line'"
+        v-if="content.type === 'line'"
         :width="chartWidth"
         :height="chartHeight"
         class="w-full h-full"
       >
         <!-- Grid lines -->
-        <g v-if="showGrid !== false" class="opacity-10">
+        <g v-if="content.showGrid !== false" class="opacity-10">
           <line
             v-for="i in gridLinesY"
             :key="`grid-y-${i}`"
@@ -66,18 +66,18 @@
           :d="getLinePath(series.data)"
           fill="none"
           :stroke="series.color || `hsl(${index * 60}, 70%, 50%)`"
-          :stroke-width="strokeWidth || 2"
+          :stroke-width="content.strokeWidth || 2"
           class="transition-all duration-300"
         />
 
         <!-- Data points -->
-        <g v-if="showPoints !== false">
+        <g v-if="content.showPoints !== false">
           <circle
             v-for="(point, pointIndex) in getAllPoints()"
             :key="`point-${point.seriesIndex}-${pointIndex}`"
             :cx="point.x"
             :cy="point.y"
-            :r="pointSize || 3"
+            :r="content.pointSize || 3"
             :fill="point.color"
             class="transition-all duration-300 hover:r-5"
             @mouseover="showTooltip(point, $event)"
@@ -88,13 +88,13 @@
 
       <!-- Bar Chart -->
       <svg
-        v-else-if="type === 'bar'"
+        v-else-if="content.type === 'bar'"
         :width="chartWidth"
         :height="chartHeight"
         class="w-full h-full"
       >
         <!-- Grid lines -->
-        <g v-if="showGrid !== false" class="opacity-10">
+        <g v-if="content.showGrid !== false" class="opacity-10">
           <line
             v-for="i in gridLinesY"
             :key="`grid-y-${i}`"
@@ -126,7 +126,7 @@
 
       <!-- Area Chart -->
       <svg
-        v-else-if="type === 'area'"
+        v-else-if="content.type === 'area'"
         :width="chartWidth"
         :height="chartHeight"
         class="w-full h-full"
@@ -171,13 +171,13 @@
           :d="getLinePath(series.data)"
           fill="none"
           :stroke="series.color || `hsl(${index * 60}, 70%, 50%)`"
-          :stroke-width="strokeWidth || 2"
+          :stroke-width="content.strokeWidth || 2"
         />
       </svg>
 
       <!-- Pie Chart -->
       <svg
-        v-else-if="type === 'pie'"
+        v-else-if="content.type === 'pie'"
         :width="chartWidth"
         :height="chartHeight"
         class="w-full h-full"
@@ -212,7 +212,7 @@
 
       <!-- Loading state -->
       <div
-        v-if="loading"
+        v-if="content.loading"
         class="absolute inset-0 flex items-center justify-center bg-background/80"
       >
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -220,20 +220,20 @@
 
       <!-- Empty state -->
       <div
-        v-if="!loading && (!processedData || processedData.length === 0)"
+        v-if="!content.loading && (!processedData || processedData.length === 0)"
         class="absolute inset-0 flex items-center justify-center text-muted-foreground"
       >
         <div class="text-center">
           <svg class="mx-auto h-12 w-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
-          <p class="mt-2">{{ emptyText || 'No data available' }}</p>
+          <p class="mt-2">{{ content.emptyText || 'No data available' }}</p>
         </div>
       </div>
     </div>
 
     <!-- Legend -->
-    <div v-if="showLegend !== false && processedData && processedData.length > 1" class="mt-4 flex flex-wrap gap-4">
+    <div v-if="content.showLegend !== false && processedData && processedData.length > 1" class="mt-4 flex flex-wrap gap-4">
       <div
         v-for="(series, index) in processedData"
         :key="`legend-${index}`"
@@ -254,9 +254,11 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 
 export default {
   props: {
-        // Individual props will be auto-generated based on the component type
-        // This is a placeholder that will be manually refined per component
-    },
+    content: {
+      type: Object,
+      default: () => ({})
+    }
+  },
   emits: ['data-point-click', 'data-point-hover'],
   setup(props, { emit }) {
     // Import utility function
@@ -280,9 +282,9 @@ export default {
     const gridLinesY = 5
 
     const processedData = computed(() => {
-      if (!props.data) return []
+      if (!props.content.data) return []
       
-      return props.data.map((series, index) => ({
+      return props.content.data.map((series, index) => ({
         ...series,
         color: series.color || `hsl(${index * 60}, 70%, 50%)`
       }))
@@ -302,7 +304,7 @@ export default {
     })
 
     const pieSlices = computed(() => {
-      if (props.type !== 'pie' || !processedData.value.length) return []
+      if (props.content.type !== 'pie' || !processedData.value.length) return []
       
       const data = processedData.value[0].data
       const total = data.reduce((sum, item) => sum + item.value, 0)
@@ -419,7 +421,7 @@ export default {
         x: event.offsetX + 10,
         y: event.offsetY - 30,
         label: point.label,
-        value: props.type === 'pie' ? 
+        value: props.content.type === 'pie' ? 
           `${point.value} (${point.percentage}%)` : 
           point.value
       }
